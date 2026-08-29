@@ -1,6 +1,6 @@
 server:
   # Port number of the application
-  port: ${port}
+  port: 8080
 
   # Define secure connection for the Bridge for Git server
 #  ssl:

@@ -112,3 +112,37 @@ Use o script [provision-b4g.sh](./scripts/provision-b4g.sh):
 - Para GitLab: use `--create-gitlab-app` com `--gitlab-token` (PAT com scope `admin:application`).
 - Para GitHub Enterprise Cloud, o `--git-api-url` deve ser `https://api.github.com` (diferente da URL da instancia).
 - Providers suportados pela documentacao oficial B4G v3.0: `GITEA`, `GITHUB`, `GITLAB`, `AZURE`, `BITBUCKET`, `BITBUCKET_CLOUD`, `LOCAL`.
+
+## Problemas conhecidos
+
+### GitLab: `The requested scope is invalid, unknown, or malformed`
+
+**Sintoma:** em **Sign in with GitLab** o browser vai para `/oauth/authorize` e o GitLab responde:
+
+`An error has occurred. The requested scope is invalid, unknown, or malformed.`
+
+A URL de authorize inclui um `scope` como:
+
+`api read_user read_repository write_repository`
+
+**Causa:** o B4G 3.0 pede esses quatro scopes no authorize. O GitLab so aceita scopes que estao registrados no OAuth Application. Se o app foi criado so com `api read_user`, os extras (`read_repository`, `write_repository`) fazem o authorize falhar — mesmo o scope `api` ja cobrindo acesso a repositorio.
+
+**Prevencao:** ao criar o app (script `--create-gitlab-app` ou criacao manual em Admin > Applications), use exatamente:
+
+`api read_user read_repository write_repository`
+
+O payload de `create_gitlab_app` em [scripts/provision-b4g.sh](./scripts/provision-b4g.sh) ja envia esses scopes.
+
+**Correcao em app ja criado:** atualize os scopes do application no GitLab (Admin area > Applications, ou Rails):
+
+```ruby
+app = Authn::OauthApplication.find_by(uid: "<client_id>")
+app.scopes = "api read_user read_repository write_repository"
+app.save!
+```
+
+Nao e necessario recriar o client secret nem reiniciar o B4G. Repita **Sign in with GitLab**.
+
+### `server.port` vs porta publicada no Compose
+
+O `docker-compose` publica `${port}:8080`. O Tomcat dentro do container deve escutar em **8080**. Os templates usam `server.port: 8080` (nao `${port}`). Se `server.port` for igual a porta do host (ex.: 8090), o compose encaminha para uma porta vazia e o browser nao abre o B4G.

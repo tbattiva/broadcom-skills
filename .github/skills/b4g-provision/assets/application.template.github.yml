@@ -1,6 +1,6 @@
 server:
   # Port number of the application
-  port: ${port}
+  port: 8080
 
 app:
 

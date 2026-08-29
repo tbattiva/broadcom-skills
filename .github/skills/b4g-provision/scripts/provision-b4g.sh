@@ -231,7 +231,7 @@ EOF
 create_gitlab_app() {
   local payload response
   payload=$(cat <<EOF
-{"name":"${PROJECT_NAME}","redirect_uri":"${B4G_URL}/oauth2/callback/gitlab","scopes":"api read_user","confidential":true}
+{"name":"${PROJECT_NAME}","redirect_uri":"${B4G_URL}/oauth2/callback/gitlab","scopes":"api read_user read_repository write_repository","confidential":true}
 EOF
 )
   response=$(curl -sS -X POST \
