@@ -1,0 +1,40 @@
+server:
+  # Port number of the application
+  port: ${port}
+
+app:
+
+  # Location to store Bridge for Git operational data
+  # ! Value cannot be blank
+  workdir: /workdir
+
+  # Bridge for Git global configuration
+  git-bridge:
+
+    # Bridge for Git URL
+    url: ${b4gUrl}
+
+  # Security
+  security:
+    # Primary authentication provider - GitHub
+    auth-provider: GITHUB
+
+    administrators:
+      - <admin>
+
+  # GitHub
+  github:
+    # GitHub Enterprise Server URL (e.g: http://github.example.net)
+    # For GitHub Enterprise Cloud use: https://github.com
+    url: ${gitServerUrl}
+
+    # GitHub REST API URL
+    # For GitHub Enterprise Server: ${gitServerUrl}/api/v3
+    # For GitHub Enterprise Cloud:  https://api.github.com
+    api-url: ${gitApiUrl}
+
+    # OAuth2 configuration (GitHub App credentials)
+    oauth2:
+      client-id: ${gitClientID}
+      client-secret: ${gitClientSecret}
+      refresh-tokens: true

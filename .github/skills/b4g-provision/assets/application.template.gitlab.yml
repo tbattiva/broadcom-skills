@@ -1,0 +1,33 @@
+server:
+  # Port number of the application
+  port: ${port}
+
+app:
+
+  # Location to store Bridge for Git operational data
+  # ! Value cannot be blank
+  workdir: /workdir
+
+  # Bridge for Git global configuration
+  git-bridge:
+
+    # Bridge for Git URL
+    url: ${b4gUrl}
+
+  # Security
+  security:
+    # Primary authentication provider - GitLab
+    auth-provider: GITLAB
+
+    administrators:
+      - <admin>
+
+  # GitLab
+  gitlab:
+    # GitLab Enterprise Server URL (e.g: http://gitlab.example.net)
+    url: ${gitServerUrl}
+
+    # OAuth2 configuration (GitLab application credentials)
+    oauth2:
+      client-id: ${gitClientID}
+      client-secret: ${gitClientSecret}

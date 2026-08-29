@@ -1,0 +1,28 @@
+version: '3.8'
+
+networks:
+  net-${projectName}:
+    external: false
+
+services:
+  bridge-for-git:
+    image: ${containerImage}
+    container_name: bfg-${projectName}
+    restart: unless-stopped
+    environment:
+      # Additional JVM options can be provided through JAVA_OPTS environment variable
+      JAVA_OPTS: "-Xss1m -Xmx2g"
+    ports:
+      # expose configured port
+      - ${port}:8080
+    networks:
+      - net-${projectName}
+    volumes:
+      # mount the working directory
+      - ./workdir:/workdir
+      # mount keystore location (if HTTPS is required)
+      #  - /opt/bfg/certificates:/certs:ro
+      # mount application.yml configuration file
+      - ./application.yml:/config/application.yml:ro
+      # in case postgres is used, mount location of the postgres JDBC driver library
+      - ./libs:/additional-libs
