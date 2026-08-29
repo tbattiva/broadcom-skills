@@ -1,0 +1,995 @@
+server:
+  # Port number of the application
+  port: 8080
+
+  # Define secure connection for the Bridge for Git server
+#  ssl:
+#    key-store-type:
+#    key-store:
+#    key-store-password:
+#    key-alias:
+  
+app:
+  
+  # Location to store Bridge for Git operational data
+  # ! Value cannot be blank
+  workdir: /workdir
+  
+  # Bridge for Git global configuration
+  git-bridge:
+    
+    # Bridge for Git URL
+    url: ${b4gUrl}
+    
+    # (Optional) Bridge for Git Webhook URL
+#    webhook-url: ${app.git-bridge.url}
+    
+    # (Optional) Bridge for Git instance identifier
+    # ! Maximum text size: 8
+#    identifier:
+    
+    # (Optional) Dependencies limit
+    # ! Minimum value: 0
+#    dependencies-limit: 50
+    
+    # (Optional) Specify the commit author for changes coming from Endevor
+    # ! Applicable values: MAPPING_OWNER, ENDEVOR_USER, ENDEVOR_USER_GIT
+#    commit-author: MAPPING_OWNER
+    
+    # (Optional) Specify the committer name to be used for changes coming from Endevor
+    # ! Applicable values: DISPLAY_NAME, USERNAME
+#    commit-committer-name: DISPLAY_NAME
+    
+    # (Optional) REST API client properties
+#    rest-client:
+      
+      # (Optional) Operation keep alive loop interval for connecting (in milliseconds)
+      # ! Minimum value: 1
+#      connect-timeout-msec: 5000
+      
+      # (Optional) Operation keep alive loop interval for read operations (in milliseconds)
+      # ! Minimum value: 1
+#      read-timeout-msec: 160000
+    
+    # (Optional) Shutdown timeout
+#    shutdown-timeout: 2m
+    
+    # (Optional) Operation retention minutes
+    # ! Minimum value: 0
+#    operation-retention-minutes: 1440
+    
+    # (Optional) Startup validation
+    # ! Applicable values: DISABLED, ENABLED, WAIT
+#    startup-validation: ENABLED
+    
+    # (Optional) Startup validation for alternate providers
+    # ! Applicable values: DISABLED, ENABLED, WAIT
+#    alternate-providers-startup-validation: ${app.git-bridge.startup-validation}
+    
+    # (Optional) Refresh revert threshold minutes
+#    refresh-revert-threshold-minutes: 5
+    
+    # (Optional) Pre-push validation for all branches
+#    pre-push-validate-all-branches: false
+    
+    # (Optional) Custom login background image
+#    login-background-image:
+    
+    # (Optional) For the specified number of processed tasks, keep alive operations are sent
+    # ! Minimum value: 1
+#    operation-keep-alive-loop-interval: 100
+  
+  # Endevor configuration
+  endevor:
+    
+    # (Optional) REST API connection timeout (in milliseconds)
+    # ! Minimum value: 1
+#    connect-timeout-msec: 5000
+    
+    # (Optional) REST API read timeout (in milliseconds)
+    # ! Minimum value: 1
+#    read-timeout-msec: 160000
+    
+    # (Optional) Trim trailing spaces in elements retrieved from Endevor
+    # ! Applicable values: NO_TRIM, TYPES_ONLY, ALWAYS
+#    trim-trailing-spaces: NO_TRIM
+    
+    # (Optional) List of element types where characters out of Endevor compare region are removed
+#    trimmed-types:
+#      - ASMMAC
+#      - ASMPGM
+#      - COBCOPY
+#      - COBPGM
+    
+    # (Optional) Allow files without extensions
+#    ignore-empty-file-extensions: false
+    
+    # (Optional) Number of retries for failing Endevor REST API requests
+    # ! Minimum value: 1
+#    retries: 5
+    
+    # (Optional) Period in milliseconds for checking the status of an Endevor Connection
+    # ! Minimum value: 10000
+#    status-check-msec: 120000
+    
+    # (Optional) Name of the directory in the Git repository for storing listings from Endevor
+    # ! Value cannot be blank
+#    listing-directory: listing
+    
+    # (Optional) File extension for storing listings from Endevor
+    # ! Value cannot be blank
+#    listing-extension: txt
+    
+    # (Optional) Retrieve element
+#    retrieve:
+      
+      # (Optional) Override Endevor sign-out for an element
+#      override-signout: true
+      
+      # (Optional) Retrieve element without signing it out
+#      no-signout: true
+      
+      # (Optional) Perform element signin after the retrieve
+      # ! Applicable values: NEVER, KEEP_PREVIOUS, ALWAYS
+#      signin-after: NEVER
+      
+      # (Optional) Retrieve element defaults
+#      default:
+        
+        # (Optional) Default retrieve CCID
+        # ! Value cannot be NULL
+        # ! Minimum text size: 1
+        # ! Maximum text size: 12
+#        ccid: RETRIEVE
+        
+        # (Optional) Default retrieve Comment
+        # ! Value cannot be NULL
+        # ! Minimum text size: 1
+        # ! Maximum text size: 40
+#        comment: Bridge for Git RETRIEVE
+        
+        # (Optional) Default retrieve To-Location
+        # ! Value cannot be NULL
+        # ! Minimum text size: 1
+        # ! Maximum text size: 768
+#        to-location: Bridge for Git ${app.git-bridge.identifier}
+    
+    # (Optional) Add/Update element
+#    update:
+      
+      # (Optional) Override Endevor signout for an element
+#      override-signout: true
+      
+      # (Optional) Perform element signin after the action
+      # ! Applicable values: NEVER, KEEP_PREVIOUS, ALWAYS
+#      signin-after: ALWAYS
+    
+    # (Optional) Generate element
+#    generate:
+      
+      # (Optional) Override Endevor signout for an element
+#      override-signout: true
+      
+      # (Optional) Perform element signin after the action
+      # ! Applicable values: NEVER, KEEP_PREVIOUS, ALWAYS
+#      signin-after: ALWAYS
+    
+    # (Optional) Automatically refresh Endevor Web Services and/or Zowe API ML tokens
+#    refresh-tokens: true
+    
+    # (Optional) Allow clock skew for JWT based Endevor Web Services and/or Zowe API ML tokens (in seconds)
+#    allow-clock-skew-sec: 0
+    
+    # (Optional) Endevor Connection cache
+#    cache:
+      
+      # (Optional) Duration in minutes for validity of the Endevor cache
+      # ! Minimum value: 1
+#      expiration-minutes: 1440
+      
+      # (Optional) Number of retries for updating the Endevor cache
+#      max-retries: 5
+  
+  # Git client configuration
+  git:
+    
+    # (Optional) Timeout for the Git push operation (in seconds)
+#    push-timeout-sec: 0
+    
+    # (Optional) Timeout for the Git pull/fetch operations (in seconds)
+#    receive-timeout-sec: 0
+    
+    # (Optional) Rate of sending keep-alive when processing asynchronous Git operation (keep-alive will run every ${app.rules.garbage-collector.inactive-operation-msec} / ${app.git.async-keep-alive-rate})
+#    async-keep-alive-rate: 10
+    
+    # (Optional) Minimum size of the thread pool used for asynchronous processing of Git operations
+    # ! Minimum value: 1
+#    pool-size: 1
+    
+    # (Optional) Maximum size of the thread pool used for asynchronous processing of Git operations
+    # ! Minimum value: 2
+#    maximum-pool-size: 10
+    
+    # (Optional) Use native Git client installed on the machine for resource intensive operations
+#    use-native-client: false
+    
+    # (Optional) Character encoding used by the native Git client
+#    native-client-encoding:
+    
+    # (Optional) Additional Git configuration
+#    git-config:
+#      core:
+#        symlinks: false
+  
+  # Security
+  security:
+    
+    # Primary authentication provider - Git Server
+    # ! Applicable values: AZURE, BITBUCKET, GITEA, GITHUB, GITLAB
+    auth-provider: GITEA
+    
+    # (Optional) Alternative authentication provider - Git Servers
+    # ! Applicable values: AZURE, BITBUCKET, GITEA, GITHUB, GITLAB
+#    alternate-auth-providers:
+#      - AZURE
+#      - BITBUCKET
+#      - GITEA
+#      - GITHUB
+#      - GITLAB
+    
+    # Administrator usernames. They are case sensitive and must match the git server usernames.
+    administrators:
+      - tbattiva
+      - mauro.saito
+    
+    # (Optional) Enable login with Personal Access Token instead of OAuth2
+#    personal-access-token-login: ${personal-access-token-login-map.${app.security.auth-provider}:false}
+    
+    # (Optional) Default role to be assigned to new users
+    # ! Applicable values: DEVELOPER, MAPPING_ADMIN
+#    default-role: MAPPING_ADMIN
+    
+    # Authentication configuration
+    auth:
+      
+      # (Optional) Duration of Web UI user token - logout inactive user after (in minutes)
+      # ! Minimum value: 5
+#      token-expiration-minutes: 20
+      
+      # (Optional) Duration of Web UI user session - force new user login after (in minutes)
+      # ! Minimum value: 15
+#      session-expiration-minutes: ${app.security.auth.token-expiration-minutes}
+      
+      # (Optional) Webhook secret token from the webhooks repository settings of the Git Server
+#      webhook-secret:
+      
+      # (Optional) Generated api key that is used in MFWebhook Server to authenticate the payloads sent via the hooks
+#      mfwebhook-apikey:
+      
+      # (Optional) Client side pre-push authentication method
+      # ! Applicable values: NONE, GIT_PERSONAL_ACCESS_TOKEN, LOCAL_HOOK_TOKEN
+#      pre-push-hook: NONE
+    
+    # (Optional) Encryption mode for sensitive data stored in database
+    # ! Applicable values: AES128_GLOBAL_KEY, AES128_FILE_KEY, AES128_PERSONAL_KEY, AES128_STORE_KEY, AES256_GLOBAL_KEY, AES256_FILE_KEY, AES256_PERSONAL_KEY, AES256_STORE_KEY
+#    encryption: AES128_FILE_KEY
+    
+    # (Optional) File in the local filesystem containing the encryption key
+    # ! Value cannot be blank
+#    encryption-file-key: ${app.workdir}/EVCS_root/encryption.key
+    
+    # (Optional) Encryption keystore details
+#    encryption-keystore:
+      
+      # (Optional) Keystore path
+#      path:
+      
+      # (Optional) Keystore password
+#      password:
+      
+      # (Optional) Keystore type
+#      type:
+      
+      # (Optional) Key alias
+#      alias:
+      
+      # (Optional) Key password
+#      key-password:
+    
+    # (Optional) Disable HTTP OPTIONS method for the Bridge for Git server application
+#    disable-http-options-method: true
+    
+    # (Optional) List of valid alternate host names for this server
+#    alternate-origins:
+#      - https://proxy1.example.com
+#      - https://proxy2.example.com
+  
+  # GitHub
+#   github:
+    
+    # GitHub Enterprise Server URL (e.g: http://github.example.net)
+#     url: <github_enterprise_server_url>
+    
+    # (Optional) GitHub REST API URL
+#    api-url: ${app.github.url}/api/v3
+    
+    # (Optional) GitHub URL to create a new Git repository
+#    new-repository-uri: ${app.github.url}/new
+    
+    # GitHub Enterprise GitHub App public link (e.g: http://github.example.net/github-apps/bridge-for-git)
+#     app-public-link: <github_app_public_link>
+    
+    # (Optional) Maximum size of a file allowed to be pushed to a Git repository (value should match respective GitHub configuration)
+#    file-size-limit: 100000000
+    
+    # (Optional) Enable login with Personal Access Token instead of OAuth2
+#    personal-access-token-login: ${app.security.personal-access-token-login}
+    
+    # (Optional) The GitHub App properties can be found on GitHub: User Account > Settings > Developer settings > GitHub Apps
+#    oauth2:
+      
+      # (Optional) OAuth2 authorization URI
+      # ! Value cannot be blank
+#      authorization-uri: ${app.github.url}/login/oauth/authorize
+      
+      # (Optional) OAuth2 access token URI
+      # ! Value cannot be blank
+#      token-uri: ${app.github.url}/login/oauth/access_token
+      
+      # (Optional) OAuth2 user info URI
+      # ! Value cannot be blank
+#      user-info-uri: ${app.github.api-url}/user
+      
+      # (Optional) GitHub OAuth2 App Client ID
+      # ! Value cannot be blank
+#      client-id: <github_app_client_id>
+      
+      # (Optional) GitHub OAuth2 App Client secret
+      # ! Value cannot be blank
+#      client-secret: <github_app_client_secret>
+      
+      # (Optional) Override redirect check to match against URL specified in 'app.git-bridge-url'
+#      override-redirect: false
+      
+      # (Optional) Enable automatic refresh of access tokens
+#      refresh-tokens: true
+    
+    # (Optional) Proxy configuration
+#    proxy:
+      
+      # (Optional) Proxy host
+#      host:
+      
+      # (Optional) Proxy port
+#      port:
+      
+      # (Optional) Proxy user name
+#      user:
+      
+      # (Optional) Proxy password
+#      pass:
+  
+  # GitLab
+#   gitlab:
+    
+    # GitLab Enterprise Server URL (e.g: http://gitlab.example.net)
+#     url: <gitlab_enterprise_server_url>
+    
+    # (Optional) GitLab REST API URL
+#    api-url: ${app.gitlab.url}/api/v4
+    
+    # (Optional) GitLab URL to create a new Git repository
+#    new-repository-uri: ${app.gitlab.url}/projects/new
+    
+    # (Optional) Maximum size of a file allowed to be pushed to a Git repository (value should match respective GitLab configuration)
+#    file-size-limit: 100000000
+    
+    # (Optional) Enable login with Personal Access Token instead of OAuth2
+#    personal-access-token-login: ${app.security.personal-access-token-login}
+    
+    # (Optional) OAuth2 configuration
+#    oauth2:
+      
+      # (Optional) OAuth2 authorization URI
+      # ! Value cannot be blank
+#      authorization-uri: ${app.gitlab.url}/oauth/authorize
+      
+      # (Optional) OAuth2 access token URI
+      # ! Value cannot be blank
+#      token-uri: ${app.gitlab.url}/oauth/token
+      
+      # (Optional) OAuth2 user info URI
+      # ! Value cannot be blank
+#      user-info-uri: ${app.gitlab.url}/api/v4/user
+      
+      # (Optional) GitLab OAuth2 App Client ID
+      # ! Value cannot be blank
+#      client-id: <gitlab_app_client_id>
+      
+      # (Optional) GitLab OAuth2 App Client secret
+      # ! Value cannot be blank
+#      client-secret: <gitlab_app_client_secret>
+      
+      # (Optional) Override redirect check to match against URL specified in 'app.git-bridge-url'
+#      override-redirect: false
+      
+      # (Optional) Enable automatic refresh of access tokens
+#      refresh-tokens: true
+    
+    # (Optional) Proxy configuration
+#    proxy:
+      
+      # (Optional) Proxy host
+#      host:
+      
+      # (Optional) Proxy port
+#      port:
+      
+      # (Optional) Proxy user name
+#      user:
+      
+      # (Optional) Proxy password
+#      pass:
+  
+  # Gitea
+  gitea:
+    
+    # Gitea Enterprise Server URL (e.g: http://gitea.example.net)
+    url: ${gitServerUrl}
+    
+    # (Optional) Gitea REST API URL
+#    api-url: ${app.gitea.url}/api/v1
+    
+    # (Optional) Gitea URL to create a new Git repository
+#    new-repository-uri: ${app.gitea.url}/repo/create
+    
+    # (Optional) Maximum size of a file allowed to be pushed to a Git repository (value should match respective Gitea configuration)
+#    file-size-limit: 100000000
+    
+    # (Optional) Allowed clock skew between the Bridge for Git server and Gitea Server (in seconds)
+#    allow-clock-skew-sec: 0
+    
+    # (Optional) Enable login with Personal Access Token instead of OAuth2
+#    personal-access-token-login: ${app.security.personal-access-token-login}
+    
+    # (Optional) OAuth2 configuration
+    oauth2:
+      
+      # (Optional) OAuth2 authorization URI
+      # ! Value cannot be blank
+#      authorization-uri: ${app.gitea.url}/login/oauth/authorize
+      
+      # (Optional) OAuth2 access token URI
+      # ! Value cannot be blank
+#      token-uri: ${app.gitea.url}/login/oauth/access_token
+      
+      # (Optional) OAuth2 user info URI
+      # ! Value cannot be blank
+#      user-info-uri: ${app.gitea.url}/api/v1/user
+      
+      # (Optional) Gitea OAuth2 App Client ID
+      # ! Value cannot be blank
+      client-id: ${gitClientID}
+      
+      # (Optional) Gitea OAuth2 App Client secret
+      # ! Value cannot be blank
+      client-secret: ${gitClientSecret}
+
+      # (Optional) Override redirect check to match against URL specified in 'app.git-bridge-url'
+#      override-redirect: false
+      
+      # (Optional) Enable automatic refresh of access tokens
+      refresh-tokens: true
+    
+    # (Optional) Proxy configuration
+#    proxy:
+      
+      # (Optional) Proxy host
+#      host:
+      
+      # (Optional) Proxy port
+#      port:
+      
+      # (Optional) Proxy user name
+#      user:
+      
+      # (Optional) Proxy password
+#      pass:
+  
+  # Bitbucket
+#   bitbucket:
+    
+    # Bitbucket Server URL (e.g: http://bitbucket.example.net)
+#     url: <bitbucket_server_url>
+    
+    # (Optional) Bitbucket REST API URL
+#    api-url: ${app.bitbucket.url}/rest/api/latest
+    
+    # (Optional) Maximum size of a file allowed to be pushed to a Git repository (value should match respective Bitbucket configuration)
+#    file-size-limit: 100000000
+    
+    # (Optional) Expiration in days of Personal Access Token generated on behalf of users when using OAuth1
+    # ! Value cannot be NULL
+    # ! Minimum value: 1
+#    token-expiration-days: 365
+    
+    # (Optional) Enable login with Personal Access Token instead of OAuth
+#    personal-access-token-login: ${app.security.personal-access-token-login}
+    
+    # (Optional) Enable login with OAuth2 instead of OAuth1
+#    use-oauth2: false
+    
+    # (Optional) OAuth1 configuration
+#    oauth:
+      
+      # (Optional) Bitbucket OAuth1 URI
+      # ! Value cannot be blank
+#      url: ${app.bitbucket.url}/plugins/servlet/oauth
+      
+      # (Optional) OAuth1 authorization URI
+      # ! Value cannot be blank
+#      authorization-uri: ${app.bitbucket.oauth.url}/authorize
+      
+      # (Optional) OAuth1 access token URI
+      # ! Value cannot be blank
+#      token-uri: ${app.bitbucket.oauth.url}/access-token
+      
+      # (Optional) OAuth1 request token URI
+      # ! Value cannot be blank
+#      request-token-uri: ${app.bitbucket.oauth.url}/request-token
+      
+      # (Optional) Consumer Key from OAuth Application Link
+      # ! Value cannot be blank
+#      consumer-key: <consumer_key>
+      
+      # (Optional) Location of your private key file, corresponding public key is set in OAuth Application Link
+      # ! Value cannot be blank
+#      private-key: <path/to/private/key.pem>
+      
+      # (Optional) Override redirect check to match against URL specified in 'app.git-bridge-url'
+#      override-redirect: false
+    
+    # (Optional) OAuth2 configuration
+#    oauth2:
+      
+      # (Optional) OAuth2 authorization URI
+      # ! Value cannot be blank
+#      authorization-uri: ${app.bitbucket.url}/rest/oauth2/latest/authorize
+      
+      # (Optional) OAuth2 access token URI
+      # ! Value cannot be blank
+#      token-uri: ${app.bitbucket.url}/rest/oauth2/latest/token
+      
+      # (Optional) OAuth2 user info URI
+      # ! Value cannot be blank
+#      user-info-uri: ${app.bitbucket.url}/rest/api/latest/users
+      
+      # (Optional) Bitbucket Application Link Client ID
+      # ! Value cannot be blank
+#      client-id: <bitbucket_client_id>
+      
+      # (Optional) Bitbucket Application Link Client secret
+      # ! Value cannot be blank
+#      client-secret: <bitbucket_client_secret>
+      
+      # (Optional) Override redirect check to match against URL specified in 'app.git-bridge-url'
+#      override-redirect: false
+      
+      # (Optional) Enable automatic refresh of access tokens
+#      refresh-tokens: true
+    
+    # (Optional) Proxy configuration
+#    proxy:
+      
+      # (Optional) Proxy host
+#      host:
+      
+      # (Optional) Proxy port
+#      port:
+      
+      # (Optional) Proxy user name
+#      user:
+      
+      # (Optional) Proxy password
+#      pass:
+  
+  # Azure DevOps
+#   azure:
+    
+    # Azure DevOps Server URL (e.g: http://azure.example.net)
+#     url: <azure_devops_server_url>
+    
+    # (Optional) Azure DevOps REST API URL
+#    api-url: ${app.azure.url}
+    
+    # (Optional) Azure DevOps User API URL
+#    user-api-url: ${app.azure.url}
+    
+    # Azure DevOps Server Default Collection
+#     default-collection: <default_collection>
+    
+    # (Optional) Azure DevOps Services Directory (tenant) ID
+#    tenant-id: common
+    
+    # (Optional) Maximum size of a file allowed to be pushed to a Git repository (value should match respective Azure DevOps configuration)
+#    file-size-limit: 100000000
+    
+    # (Optional) Allowed clock skew between the Bridge for Git server and Azure DevOps Server (in seconds)
+#    allow-clock-skew-sec: 0
+    
+    # (Optional) Enable login with Personal Access Token instead of OAuth2
+#    personal-access-token-login: true
+    
+    # (Optional) OAuth2 configuration
+#    oauth2:
+      
+      # (Optional) OAuth2 authorization URI
+      # ! Value cannot be blank
+#      authorization-uri: https://login.microsoftonline.com/${app.azure.tenant-id}/oauth2/v2.0/authorize
+      
+      # (Optional) OAuth2 access token URI
+      # ! Value cannot be blank
+#      token-uri: https://login.microsoftonline.com/${app.azure.tenant-id}/oauth2/v2.0/token
+      
+      # (Optional) OAuth2 user info URI
+      # ! Value cannot be blank
+#      user-info-uri: ${app.azure.user-api-url}/${app.azure.default-collection}/_apis/identities
+      
+      # (Optional) Azure DevOps Services OAuth2 App Client ID
+      # ! Value cannot be blank
+#      client-id: <azure_app_client_id>
+      
+      # (Optional) Azure DevOps Services OAuth2 App Client secret
+      # ! Value cannot be blank
+#      client-secret: <azure_app_client_secret>
+      
+      # (Optional) Override redirect check to match against URL specified in 'app.git-bridge-url'
+#      override-redirect: false
+      
+      # (Optional) Enable automatic refresh of access tokens
+#      refresh-tokens: true
+    
+    # (Optional) Proxy configuration
+#    proxy:
+      
+      # (Optional) Proxy host
+#      host:
+      
+      # (Optional) Proxy port
+#      port:
+      
+      # (Optional) Proxy user name
+#      user:
+      
+      # (Optional) Proxy password
+#      pass:
+  
+  # Logging configuration
+  logging:
+    
+    # (Optional) Logging level of the application
+    # ! Applicable values: ERROR, WARN, INFO, DEBUG, TRACE
+#    git-bridge-level: INFO
+    
+    # (Optional) Logging level of the local pre-push hook
+#    local-validation-debug-mode: false
+    
+    # (Optional) Enable logging of configuration properties on startup
+#    additional-log-info: true
+    
+    # (Optional) Maximum number of archive files to keep
+#    max-history: 90
+    
+    # (Optional) Maximum log file size before it gets archived
+#    max-file-size: 300MB
+    
+    # (Optional) Total size of all archive files
+#    total-size-cap: 1GB
+  
+  # Dispatcher
+  dispatcher:
+    
+    # (Optional) Enable dispatcher at application startup
+#    enable-on-startup: true
+    
+    # (Optional) Minimum size of the dispatcher thread-pool
+    # ! Minimum value: 4
+#    pool-size: 4
+    
+    # (Optional) Maximum size of the dispatcher thread-pool
+    # ! Minimum value: 4
+#    maximum-pool-size: 100
+    
+    # (Optional) Maximum waiting time between rules evaluation (in milliseconds)
+    # ! Minimum value: 10
+#    await-timeout-msec: 10000
+    
+    # (Optional) Minimum waiting time between rules evaluation (in milliseconds)
+    # ! Minimum value: 10
+#    cool-down-msec: 1000
+  
+  # Notifications
+  notifications:
+    
+    # (Optional) Number of minutes for how long old (read) notifications are stored
+    # ! Minimum value: 10
+#    notification-retention-minutes: 10080
+    
+    # (Optional) Number of minutes for how long new (unread) notifications are stored
+    # ! Minimum value: 10
+#    new-notification-retention-minutes: 20160
+    
+    # (Optional) Enable push notifications
+#    push-notifications: true
+    
+    # (Optional) Provide full element details in notification messages
+#    full-element-details: false
+  
+  # Dispatcher rules
+  rules:
+    
+    # (Optional) New mapping or branch initialization
+#    initialization:
+      
+      # (Optional) Maximum number of concurrent runs of the same processing rule for different branches or mappings
+      # ! Minimum value: 1
+#      pool-size: 1
+      
+      # (Optional) Running mode for individual Endevor requests within the respective processing rule
+      # ! Applicable values: SERIAL, PARALLEL
+#      runner-mode: SERIAL
+    
+    # (Optional) Synchronization from Endevor to Git (scheduled and event-based sync-back or add element)
+#    refresh:
+      
+      # (Optional) Maximum number of concurrent runs of the same processing rule for different branches or mappings
+      # ! Minimum value: 1
+#      pool-size: 1
+      
+      # (Optional) Running mode for individual Endevor requests within the respective processing rule
+      # ! Applicable values: SERIAL, PARALLEL
+#      runner-mode: SERIAL
+    
+    # (Optional) Synchronization from Git to Endevor
+#    synchronization:
+      
+      # (Optional) Maximum number of concurrent runs of the same processing rule for different branches or mappings
+      # ! Minimum value: 1
+#      pool-size: 1
+      
+      # (Optional) Running mode for individual Endevor requests within the respective processing rule
+      # ! Applicable values: SERIAL, PARALLEL
+#      runner-mode: SERIAL
+    
+    # (Optional) Delete mapping or branch
+#    delete-mapping:
+      
+      # (Optional) Maximum number of concurrent runs of the same processing rule for different branches or mappings
+      # ! Minimum value: 1
+#      pool-size: 1
+      
+      # (Optional) Running mode for individual Endevor requests within the respective processing rule
+      # ! Applicable values: SERIAL, PARALLEL
+#      runner-mode: SERIAL
+    
+    # (Optional) Generate changes after successful synchronization
+#    generate:
+      
+      # (Optional) Maximum number of concurrent runs of the same processing rule for different branches or mappings
+      # ! Minimum value: 1
+#      pool-size: 1
+      
+      # (Optional) Running mode for individual Endevor requests within the respective processing rule
+      # ! Applicable values: SERIAL, PARALLEL
+#      runner-mode: SERIAL
+    
+    # (Optional) Migrate mapping to a different repository
+#    migrate-mapping:
+      
+      # (Optional) Maximum number of concurrent runs of the same processing rule for different branches or mappings
+      # ! Minimum value: 1
+#      pool-size: 1
+      
+      # (Optional) Running mode for individual Endevor requests within the respective processing rule
+      # ! Applicable values: SERIAL, PARALLEL
+#      runner-mode: SERIAL
+    
+    # (Optional) Remove old operations from the App activity
+#    garbage-collector:
+      
+      # (Optional) Number of milliseconds after which a completed operation is garbage collected
+      # ! Minimum value: 10000
+#      inactive-operation-msec: 1800000
+    
+    # (Optional) Remove old temporary files
+#    temporary-file-collector:
+      
+      # (Optional) Enable automatic cleanup of old temporary files
+#      enabled: true
+      
+      # (Optional) Number of hours after which temporary file is removed
+      # ! Minimum value: 1
+#      file-retention-hours: 72
+      
+      # (Optional) Frequency in hours to check for old temporary files
+      # ! Minimum value: 1
+#      run-every-hours: 2
+    
+    # (Optional) Automatically refresh access tokens
+#    refresh-tokens:
+      
+      # (Optional) Enable automatic refresh of access tokens
+#      enabled: false
+      
+      # (Optional) Enable refresh of access tokens when application is shutting down
+#      at-shutdown: false
+      
+      # (Optional) Number of milliseconds after which refresh of Zowe API ML token is retried after previous failure
+      # ! Minimum value: 10000
+#      api-ml-retry-msec: 3600000
+      
+      # (Optional) Number of milliseconds after which refresh of Endevor token is retried after previous failure
+      # ! Minimum value: 10000
+#      endevor-retry-msec: 60000
+    
+    # (Optional) Generate a heartbeat signal to be used in hooks
+#    heartbeat:
+      
+      # (Optional) Enable generation of the heartbeat signal
+#      enabled: false
+      
+      # (Optional) Number of milliseconds between heartbeat signals
+      # ! Minimum value: 100
+#      period-msec: 60000
+    
+    # (Optional) Asynchronous sending of notifications (email and push notifications, hooks)
+#    notifications:
+      
+      # (Optional) Number of retries after an attempt to send a notification fails
+      # ! Minimum value: 0
+#      retries: 3
+      
+      # (Optional) Number of milliseconds after which an attempt to send a notification is considered stale
+      # ! Minimum value: 1000
+#      stale-msec: 600000
+      
+      # (Optional) Number of milliseconds to keep a notification request
+      # ! Minimum value: 1000
+#      retention-msec: 1800000
+    
+    # (Optional) Manage MF Webhook Server subscriptions
+#    mf-webhook-server:
+      
+      # (Optional) Enable automatic MF Webhook Server subscription management
+#      enabled: true
+      
+      # (Optional) Frequency in milliseconds to check MF Webhook Server status
+#      period-msec: 60000
+      
+      # (Optional) Number of retries for failed request to MF Webhook Server
+      # ! Minimum value: 1
+#      retries: 5
+    
+    # (Optional) Configure internal operations benchmark
+#    operation-benchmark:
+      
+      # (Optional) Enable synchronization operations benchmark
+#      enabled: false
+      
+      # (Optional) Frequency in milliseconds to run the benchmark query
+      # ! Minimum value: 100
+#      period-msec: 600000
+      
+      # (Optional) Number of benchmark queries
+      # ! Minimum value: 1
+#      queries: 10
+      
+      # (Optional) Number of actions in each benchmark query
+      # ! Minimum value: 1
+#      actions: 100
+    
+    # (Optional) Configure internal benchmark for CPU
+#    cpu-benchmark:
+      
+      # (Optional) Enable CPU benchmark
+#      enabled: false
+      
+      # (Optional) Frequency in milliseconds to run #{#benchmarkName}
+      # ! Minimum value: 100
+#      period-msec: 600000
+      
+      # (Optional) Number of #{#benchmarkName} repetitions in one run
+      # ! Minimum value: 1
+#      repeat-count: 10
+      
+      # (Optional) Number of times calculation is chained in a loop
+      # ! Minimum value: 1
+#      loop-count: 100
+      
+      # (Optional) Number of times string is repeated for a hash calculation
+      # ! Minimum value: 1
+#      hash-count: 1000
+      
+      # (Optional) Number of dummy calculations are repeated
+      # ! Minimum value: 1
+#      calculation-count: 1000
+  
+  # Bridge cluster support
+  cluster:
+    
+    # (Optional) Enable Bridge for Git cluster support
+#    enabled: false
+    
+    # (Optional) Bridge cluster-specific node URL (used for inter-node communication). It is different from the app.git-bridge.url that should point to the load balancer
+#    node-url: ${app.git-bridge.url}
+    
+    # (Optional) Bridge cluster specific node ID (used for inter-node communication). It is different from the app.git-bridge.identifier that should be common for the whole cluster
+#    node-id: ${app.git-bridge.identifier}
+    
+    # (Optional) Timeout for cluster-wide distributed locks (in milliseconds)
+    # ! Minimum value: 100
+#    distributed-lock-timeout-msec: 2000
+    
+    # (Optional) Scope of the pool-size options for individual rules
+    # ! Applicable values: LOCAL, GLOBAL
+#    jobs-pool-size-scope: LOCAL
+    
+    # (Optional) Number of milliseconds after which an unresponsive cluster node is considered offline
+    # ! Minimum value: 10
+#    node-probing-period-msec: 100000
+    
+    # (Optional) Cluster communication client connection timeout (in milliseconds)
+    # ! Minimum value: 1
+#    connect-timeout-msec: 5000
+    
+    # (Optional) Cluster communication client read timeout (in milliseconds)
+    # ! Minimum value: 1
+#    read-timeout-msec: 10000
+  
+  # Database configuration
+  database:
+
+    # url: jdbc:postgresql://db:5432/bfg_db
+    # driver-class-name: org.postgresql.Driver
+    # username: bfg_app_user
+    # password: pass123
+    
+    # (Optional) Database JDBC URL
+#      url: jdbc:derby:${app.workdir}/EVCS_root/db;create=true
+    
+    # (Optional) Database JDBC driver
+#    driver-class-name: org.apache.derby.jdbc.EmbeddedDriver
+    
+    # (Optional) Database login username
+    # ! Value cannot be blank
+#      username: bfg_db
+    
+    # (Optional) Enable database migration
+#    migrate: false
+    
+    # (Optional) Enable migration datasource configuration
+#    migrate-datasource: ${app.database.migrate}
+    
+    # (Optional) Source database for migration
+#    migrate-database:
+      
+      # (Optional) Migration source database JDBC URL
+#      url:
+      
+      # (Optional) Migration source database JDBC driver
+#      driver-class-name:
+      
+      # (Optional) Size of batch taken during database migration
+#      chunk-size: 1000
+  
+  # Hooks configuration
+  hook:
+    
+    # (Optional) Timeout for processing native commands from hooks (in milliseconds)
+    # ! Minimum value: 1000
+#    process-timeout-msec: 300000
+    
+    # (Optional) List of enabled native commands to be used in hooks
+#    enabled-commands:
+#      - opsstat
+#      - /opt/bfg/hook

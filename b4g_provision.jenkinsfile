@@ -1,0 +1,156 @@
+// NEW_B4G.jenkinsfile
+// This Jenkinsfile is for the NEW_B4G project
+//
+// Prerequisites: 
+// - Jenkins with HTTP Request Plugin installed
+// - Access to the specified URL and proper authentication (Gitea access)
+// - images already available in the node server
+
+pipeline {
+    // point the execution to node_ubuntu
+    agent { label 'node_ubuntu' }
+    parameters {
+        string(name: 'projectName', defaultValue: 'B4G_Instance_01', description: 'Name of the B4G instance (lowercase, no spaces)')
+        choice(name: 'containerImage', choices: "endevor-bridge-for-git.packages.broadcom.com/bridge-for-git:2.15.13\nendevor-bridge-for-git.packages.broadcom.com/bridge-for-git:3.0.0", description: 'Select an image')
+        string(name: 'port', defaultValue: '8080', description: 'Port number')
+        string(name: 'host', defaultValue: 'tf896250-ubuntu22-dev01.msd.labs.broadcom.net', description: 'Host name or IP address')
+        string(name: 'b4gUrl', defaultValue: 'http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:8080', description: 'Bridge for Git URL')
+        string(name: 'gitServerUrl', defaultValue: 'http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:3033', description: 'Gitea Server URL')
+        string(name: 'gitClientID', defaultValue: '', description: 'Gitea Client ID')
+        string(name: 'gitClientSecret', defaultValue: '', description: 'Gitea Client Secret')
+        string(name: 'applicationYaml', defaultValue: 'http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:3033/Demos_and_Docs/Automatic_Offers--from_jenkins/raw/branch/main/offers/resources/NEW_B4G/application_internalDB.yml', description: 'Application YAML (url)')
+        string(name: 'dockerCompose', defaultValue: 'http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:3033/Demos_and_Docs/Automatic_Offers--from_jenkins/raw/branch/main/offers/resources/NEW_B4G/docker-compose_internalDB.yml', description: 'Docker Compose (url)')
+    }
+
+    stages {
+        stage('Create a directory for the new instance') {
+            steps {
+                script {
+                    echo 'Create a directory for the new instance'
+                    sh "mkdir -p /auto/${params.projectName}"
+                    echo 'Directory created'
+                    // change permissions
+                    sh "chmod -R 777 /auto/${params.projectName}"
+                    echo 'Permissions changed'
+                    // create a workdir inside the project directory
+                    sh "mkdir -p /auto/${params.projectName}/workdir"
+                    echo 'Workdir created'
+                    // create 'logs' directory inside workdir
+                    sh "mkdir -p /auto/${params.projectName}/workdir/logs"
+                    echo 'Logs directory created'
+                    
+
+                }
+            }
+        }
+        // stage to create a new application on the Gitea server, if no value was provided for 'gitClientID' and 'gitClientSecret'
+        stage('Create Gitea Application') {
+            when {
+                expression {
+                    return params.gitClientID == '' || params.gitClientSecret == ''
+                }
+            }
+            steps {
+                echo 'Create Gitea Application'
+                script {
+                    // implement the logic to create a new application on the Gitea server
+                    // send a POST request to the Gitea server's API (http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:3033/api/v1/user/applications/oauth2)
+                    // with the necessary parameters (confidential_client as true, name as ${params.projectName}, redirect_uris as an array with ${params.b4gUrl}/oauth2/callback/gitea and skip_secondary_authorization as true)
+
+                    def postBody = [
+                        confidential_client: true,
+                        name: params.projectName,
+                        redirect_uris: ["${params.b4gUrl}/oauth2/callback/gitea"],
+                        skip_secondary_authorization: true
+                    ]
+                    def response = httpRequest(
+
+                        httpMode: 'POST',
+                        acceptType: 'APPLICATION_JSON',
+                        contentType: 'APPLICATION_JSON',
+                        url: "${params.gitServerUrl}/api/v1/user/applications/oauth2",
+                        customHeaders: [
+                            [name: 'Authorization', value: 'Basic dGJhdHRpdmE6dGJhdHRpdmE=']
+                        ],
+                        requestBody: groovy.json.JsonOutput.toJson(postBody)
+                    )
+                    echo "Response: ${response.content}"
+                    def jsonResponse = readJSON text: response.content
+                    echo "parsed"
+                    // extract the client ID and client secret from the response
+                    def newClientID = jsonResponse.client_id
+                    def newClientSecret = jsonResponse.client_secret
+                    echo "Extracted Client ID: ${newClientID}"
+                    echo "Extracted Client Secret: ${newClientSecret}"
+                    // store the values in environment variables (params is read-only)
+                    env.GIT_CLIENT_ID = newClientID
+                    env.GIT_CLIENT_SECRET = newClientSecret
+                    echo "New Gitea Application created with Client ID: ${newClientID}"
+                }
+            }
+        }
+
+
+        stage('Populate with the resources: application.yaml') {
+            steps {
+                echo 'Populate with the resources'
+                script {
+                    def response = httpRequest url: params.applicationYaml
+                    // determine git client values (prefer environment variables set earlier)
+                    def effectiveGitClientID = env.GIT_CLIENT_ID ?: params.gitClientID
+                    def effectiveGitClientSecret = env.GIT_CLIENT_SECRET ?: params.gitClientSecret
+                    // change placeholders in the content
+                    response.content = response.content.replaceAll('\\$\\{port\\}', params.port)
+                    response.content = response.content.replaceAll('\\$\\{b4gUrl\\}', params.b4gUrl)
+                    response.content = response.content.replaceAll('\\$\\{gitServerUrl\\}', params.gitServerUrl)
+                    response.content = response.content.replaceAll('\\$\\{containerImage\\}', params.containerImage)
+                    response.content = response.content.replaceAll('\\$\\{projectName\\}', params.projectName)
+                    response.content = response.content.replaceAll('\\$\\{gitClientID\\}', effectiveGitClientID)
+                    response.content = response.content.replaceAll('\\$\\{gitClientSecret\\}', effectiveGitClientSecret)
+
+                    writeFile file: "/auto/${params.projectName}/application.yml", text: response.content
+                }
+            }
+        }
+        stage('Populate with the resources: docker-compose.yaml') {
+            steps {
+                echo 'Populate with the resources'
+                script {
+                    def dockerComposeContent = httpRequest url: params.dockerCompose
+                    // change placeholders in the content
+                    dockerComposeContent.content = dockerComposeContent.content.replaceAll('\\$\\{port\\}', params.port)
+                    dockerComposeContent.content = dockerComposeContent.content.replaceAll('\\$\\{b4gUrl\\}', params.b4gUrl)
+                    dockerComposeContent.content = dockerComposeContent.content.replaceAll('\\$\\{gitServerUrl\\}', params.gitServerUrl)
+                    dockerComposeContent.content = dockerComposeContent.content.replaceAll('\\$\\{containerImage\\}', params.containerImage)
+                    dockerComposeContent.content = dockerComposeContent.content.replaceAll('\\$\\{projectName\\}', params.projectName)
+                    writeFile file: "/auto/${params.projectName}/docker-compose.yaml", text: dockerComposeContent.content
+                }
+            }
+        }
+        stage('Start the instance') {
+            steps {
+                echo 'Start the instance'
+                script {
+                    sh "cd /auto/${params.projectName} && docker compose up -d"
+                }
+            }
+        }
+        stage('Display instance info') {
+            steps {
+                echo 'Display instance info'
+                script {
+                    echo "Instance ${params.projectName} started."
+                    echo "Access it at: ${params.b4gUrl}"
+                }
+                echo 'Display application logs (last 20 lines)'
+                script {
+                    sh "cd /auto/${params.projectName} && docker compose logs --tail=20"
+                }
+                echo 'Display application.yml content'
+                script {
+                    sh "cat /auto/${params.projectName}/application.yml"
+                }
+            }
+        }
+    }
+}
