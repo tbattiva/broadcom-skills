@@ -47,7 +47,7 @@ Opcoes:
   --create-gitea-app             Cria app OAuth no Gitea se ID/Secret nao informados
   --gitea-basic-auth-b64 <valor> Credencial Basic Auth em Base64 (para --create-gitea-app)
   --create-gitlab-app            Cria app OAuth no GitLab se ID/Secret nao informados
-  --gitlab-token <valor>         Personal Access Token GitLab com escopo admin (para --create-gitlab-app)
+  --gitlab-token <valor>         Personal Access Token GitLab com escopo admin (OAuth e verificacao de webhooks)
   --no-logs                      Nao exibir logs ao final
   -h, --help                     Exibe esta ajuda
 
@@ -198,7 +198,7 @@ LOGS_DIR="${WORKDIR_DIR}/logs"
 mkdir -p "${LOGS_DIR}"
 chmod -R 777 "${INSTANCE_DIR}" 2>/dev/null || true
 
-echo "[1/5] Estrutura criada em ${INSTANCE_DIR}"
+echo "[1/6] Estrutura criada em ${INSTANCE_DIR}"
 
 create_gitea_app() {
   local payload response
@@ -265,7 +265,7 @@ if [[ -z "${GIT_CLIENT_ID}" || -z "${GIT_CLIENT_SECRET}" ]]; then
         echo "Erro: informe --gitea-basic-auth-b64 ao usar --create-gitea-app." >&2
         exit 1
       fi
-      echo "[2/5] Criando aplicacao OAuth no Gitea"
+      echo "[2/6] Criando aplicacao OAuth no Gitea"
       create_gitea_app
       echo "Client ID gerado: ${GIT_CLIENT_ID}"
       ;;
@@ -278,7 +278,7 @@ if [[ -z "${GIT_CLIENT_ID}" || -z "${GIT_CLIENT_SECRET}" ]]; then
         echo "Erro: informe --gitlab-token ao usar --create-gitlab-app." >&2
         exit 1
       fi
-      echo "[2/5] Criando aplicacao OAuth no GitLab"
+      echo "[2/6] Criando aplicacao OAuth no GitLab"
       create_gitlab_app
       echo "Client ID gerado: ${GIT_CLIENT_ID}"
       ;;
@@ -295,7 +295,7 @@ if [[ -z "${GIT_CLIENT_ID}" || -z "${GIT_CLIENT_SECRET}" ]]; then
       ;;
   esac
 else
-  echo "[2/5] Usando credenciais OAuth informadas"
+  echo "[2/6] Usando credenciais OAuth informadas"
 fi
 
 escape_sed() {
@@ -332,16 +332,79 @@ render_template() {
 }
 
 render_template "${APPLICATION_TEMPLATE}" "${INSTANCE_DIR}/application.yml"
-echo "[3/5] application.yml gerado"
+echo "[3/6] application.yml gerado"
 
 render_template "${DOCKER_COMPOSE_TEMPLATE}" "${INSTANCE_DIR}/docker-compose.yml"
-echo "[4/5] docker-compose.yml gerado"
+echo "[4/6] docker-compose.yml gerado"
 
-echo "[5/5] Subindo instancia via Docker Compose"
+echo "[5/6] Subindo instancia via Docker Compose"
 (
   cd "${INSTANCE_DIR}"
   docker compose up -d
 )
+
+verify_git_server_hook_settings() {
+  echo "[6/6] Verificando se o Git server permite criar webhooks para URL local/privada"
+  case "${GIT_PROVIDER}" in
+    gitlab)
+      verify_gitlab_local_webhooks
+      ;;
+    *)
+      echo "AVISO: verificacao nao foi possivel. O provider '${GIT_PROVIDER}' nao expoe essa configuracao via API neste fluxo."
+      ;;
+  esac
+}
+
+verify_gitlab_local_webhooks() {
+  if [[ -z "${GITLAB_TOKEN}" ]]; then
+    echo "AVISO: verificacao nao foi possivel. Sem --gitlab-token (admin) nao e possivel ler allow_local_requests_from_web_hooks_and_services."
+    echo "       Sem essa opcao habilitada, o GitLab recusa webhooks para URL privada (422 Invalid url given)."
+    return 0
+  fi
+
+  local tmp http_code body allowed
+  tmp=$(mktemp)
+  http_code=$(curl -sS -o "${tmp}" -w '%{http_code}' -m 15 \
+    -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+    "${GIT_API_URL}/application/settings" || true)
+
+  if [[ -z "${http_code}" || "${http_code}" == "000" ]]; then
+    echo "AVISO: verificacao nao foi possivel (sem conexao com ${GIT_API_URL}/application/settings)."
+    rm -f "${tmp}"
+    return 0
+  fi
+
+  if [[ "${http_code}" != "200" ]]; then
+    echo "AVISO: verificacao nao foi possivel (HTTP ${http_code} em ${GIT_API_URL}/application/settings)."
+    rm -f "${tmp}"
+    return 0
+  fi
+
+  body=$(cat "${tmp}")
+  rm -f "${tmp}"
+
+  if command -v jq >/dev/null 2>&1; then
+    allowed=$(printf '%s' "${body}" | jq -r '.allow_local_requests_from_web_hooks_and_services // empty')
+  else
+    allowed=$(printf '%s' "${body}" | sed -n 's/.*"allow_local_requests_from_web_hooks_and_services"[[:space:]]*:[[:space:]]*\(true\|false\).*/\1/p' | head -1)
+  fi
+
+  if [[ -z "${allowed}" ]]; then
+    echo "AVISO: verificacao nao foi possivel (campo allow_local_requests_from_web_hooks_and_services ausente na resposta)."
+    return 0
+  fi
+
+  if [[ "${allowed}" == "true" ]]; then
+    echo "OK: GitLab permite webhooks para URLs locais/privadas (allow_local_requests_from_web_hooks_and_services=true)."
+  else
+    echo "AVISO: GitLab NAO permite webhooks para URLs locais/privadas (allow_local_requests_from_web_hooks_and_services=false)."
+    echo "       O B4G nao conseguira criar hooks se b4gUrl for hostname/IP privado (422 Invalid url given)."
+    echo "       Habilite em Admin > Settings > Network > Outbound requests, ou:"
+    echo "       gitlab_rails['allow_local_requests_from_web_hooks_and_services'] = true"
+  fi
+}
+
+verify_git_server_hook_settings
 
 echo "Provisionamento concluido"
 echo "Instancia: ${PROJECT_NAME}"

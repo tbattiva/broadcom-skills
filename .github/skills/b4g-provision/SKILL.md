@@ -65,7 +65,8 @@ Skill para provisionamento de uma nova instancia do Endevor Bridge for Git (BFG/
    - `${gitClientID}`, `${gitClientSecret}`
 5. Renderizar o `docker-compose.yml` com os mesmos placeholders.
 6. Executar `docker compose up -d` no diretorio da instancia.
-7. Exibir URL final e ultimas linhas de log.
+7. Verificar se o Git server permite webhooks para URL local/privada (necessario para o B4G criar hooks). Se a consulta nao for possivel, avisar o usuario.
+8. Exibir URL final e ultimas linhas de log.
 
 ## Execucao
 
@@ -109,7 +110,7 @@ Use o script [provision-b4g.sh](./scripts/provision-b4g.sh):
 ## Observacoes
 
 - Para Gitea: use `--create-gitea-app` com `--gitea-basic-auth-b64` (credencial Basic Auth em Base64).
-- Para GitLab: use `--create-gitlab-app` com `--gitlab-token` (PAT com scope `admin:application`).
+- Para GitLab: use `--create-gitlab-app` com `--gitlab-token` (PAT com scope `admin:application`). O mesmo token e usado no final do fluxo para verificar `allow_local_requests_from_web_hooks_and_services`. Sem o token, a verificacao nao e possivel e o script avisa.
 - Para GitHub Enterprise Cloud, o `--git-api-url` deve ser `https://api.github.com` (diferente da URL da instancia).
 - Providers suportados pela documentacao oficial B4G v3.0: `GITEA`, `GITHUB`, `GITLAB`, `AZURE`, `BITBUCKET`, `BITBUCKET_CLOUD`, `LOCAL`.
 
@@ -146,3 +147,38 @@ Nao e necessario recriar o client secret nem reiniciar o B4G. Repita **Sign in w
 ### `server.port` vs porta publicada no Compose
 
 O `docker-compose` publica `${port}:8080`. O Tomcat dentro do container deve escutar em **8080**. Os templates usam `server.port: 8080` (nao `${port}`). Se `server.port` for igual a porta do host (ex.: 8090), o compose encaminha para uma porta vazia e o browser nao abre o B4G.
+
+### GitLab: push/branch nao disparam o B4G (`Invalid url given`)
+
+**Sintoma:** pushes e atualizacoes de branch no GitLab nao chegam ao B4G. Nos logs do Bridge aparece `Webhook not created` e o GitLab responde `422` com `{"error":"Invalid url given"}` em `POST /api/v4/projects/<path>/hooks`. Em Admin > Applications Settings, ou via Rails, `allow_local_requests_from_web_hooks_and_services` esta `false`. `WebHook.count` fica `0`.
+
+**Causa:** o B4G tenta registrar o webhook em:
+
+`{b4gUrl}/rest/evcs/v1/hooks/posthookGitlab`
+
+Se `b4gUrl` aponta para hostname/IP de rede privada (lab, Docker, RFC1918), o GitLab recusa a URL por padrao. Sem o hook, nenhum evento de push e enviado.
+
+**Prevencao / correcao no GitLab (lab):**
+
+1. Habilitar requests locais para webhooks (Admin > Settings > Network > Outbound requests, ou Omnibus):
+
+```ruby
+# gitlab.rb / GITLAB_OMNIBUS_CONFIG
+gitlab_rails['allow_local_requests_from_web_hooks_and_services'] = true
+```
+
+```ruby
+s = ApplicationSetting.current
+s.allow_local_requests_from_web_hooks_and_services = true
+s.save!
+```
+
+2. Recriar o webhook (o B4G tenta de novo na inicializacao do mapping, ou crie manualmente no projeto: Settings > Webhooks):
+
+- URL: `http://<host-b4g>:<port>/rest/evcs/v1/hooks/posthookGitlab`
+- Trigger: Push events (e Tag push, se aplicavel)
+- SSL verification: desligada se a URL for HTTP
+
+Confirme no container do GitLab que a URL do B4G responde (`curl` na FQDN da instancia). `localhost` dentro do GitLab nao e o B4G.
+
+O script de provisionamento consulta essa flag no final do fluxo (`GET /api/v4/application/settings`) quando `--gitlab-token` e informado. Sem token, sem admin, ou se a API falhar, imprime que a verificacao nao foi possivel — o provisionamento em si nao e abortado.

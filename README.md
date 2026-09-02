@@ -76,7 +76,8 @@ O script e compativel com Linux e Windows via Git Bash.
    - `${gitClientSecret}`
 4. Ajusta a porta do `application.yml`.
 5. Executa `docker compose up -d`.
-6. Exibe URL final e logs (ultimas 20 linhas por padrao).
+6. Verifica se o Git server permite webhooks para URL local/privada (GitLab: `allow_local_requests_from_web_hooks_and_services`). Se nao for possivel consultar, avisa o usuario.
+7. Exibe URL final e logs (ultimas 20 linhas por padrao).
 
 ## Observacoes
 
