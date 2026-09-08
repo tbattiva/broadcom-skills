@@ -952,7 +952,7 @@ app:
     # url: jdbc:postgresql://db:5432/bfg_db
     # driver-class-name: org.postgresql.Driver
     # username: bfg_app_user
-    # password: pass123
+    # password: <defina_uma_senha_segura>
     
     # (Optional) Database JDBC URL
 #      url: jdbc:derby:${app.workdir}/EVCS_root/db;create=true
