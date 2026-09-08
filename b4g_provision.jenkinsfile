@@ -18,6 +18,7 @@ pipeline {
         string(name: 'gitServerUrl', defaultValue: 'http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:3033', description: 'Gitea Server URL')
         string(name: 'gitClientID', defaultValue: '', description: 'Gitea Client ID')
         string(name: 'gitClientSecret', defaultValue: '', description: 'Gitea Client Secret')
+        password(name: 'giteaBasicAuthB64', defaultValue: '', description: 'Base64 de usuario:senha para Basic Auth no Gitea (obrigatorio ao criar app)')
         string(name: 'applicationYaml', defaultValue: 'http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:3033/Demos_and_Docs/Automatic_Offers--from_jenkins/raw/branch/main/offers/resources/NEW_B4G/application_internalDB.yml', description: 'Application YAML (url)')
         string(name: 'dockerCompose', defaultValue: 'http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:3033/Demos_and_Docs/Automatic_Offers--from_jenkins/raw/branch/main/offers/resources/NEW_B4G/docker-compose_internalDB.yml', description: 'Docker Compose (url)')
     }
@@ -53,6 +54,9 @@ pipeline {
             steps {
                 echo 'Create Gitea Application'
                 script {
+                    if (!params.giteaBasicAuthB64?.trim()) {
+                        error("Parametro 'giteaBasicAuthB64' e obrigatorio quando 'gitClientID' ou 'gitClientSecret' nao forem informados.")
+                    }
                     // implement the logic to create a new application on the Gitea server
                     // send a POST request to the Gitea server's API (http://tf896250-ubuntu22-dev01.msd.labs.broadcom.net:3033/api/v1/user/applications/oauth2)
                     // with the necessary parameters (confidential_client as true, name as ${params.projectName}, redirect_uris as an array with ${params.b4gUrl}/oauth2/callback/gitea and skip_secondary_authorization as true)
@@ -70,18 +74,14 @@ pipeline {
                         contentType: 'APPLICATION_JSON',
                         url: "${params.gitServerUrl}/api/v1/user/applications/oauth2",
                         customHeaders: [
-                            [name: 'Authorization', value: 'Basic dGJhdHRpdmE6dGJhdHRpdmE=']
+                            [name: 'Authorization', value: "Basic ${params.giteaBasicAuthB64}"]
                         ],
                         requestBody: groovy.json.JsonOutput.toJson(postBody)
                     )
-                    echo "Response: ${response.content}"
                     def jsonResponse = readJSON text: response.content
-                    echo "parsed"
                     // extract the client ID and client secret from the response
                     def newClientID = jsonResponse.client_id
                     def newClientSecret = jsonResponse.client_secret
-                    echo "Extracted Client ID: ${newClientID}"
-                    echo "Extracted Client Secret: ${newClientSecret}"
                     // store the values in environment variables (params is read-only)
                     env.GIT_CLIENT_ID = newClientID
                     env.GIT_CLIENT_SECRET = newClientSecret
